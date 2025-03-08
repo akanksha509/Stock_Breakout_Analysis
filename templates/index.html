@@ -1,0 +1,308 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stock Breakout Analysis</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+      <h1 class="text-3xl font-bold mb-8 text-center">
+        Stock Breakout Analysis
+      </h1>
+
+      <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+        <form id="analysisForm" class="mb-8">
+          <div class="mb-4">
+            <label
+              class="block text-gray-700 text-sm font-bold mb-2"
+              for="ticker"
+            >
+              Ticker Symbol
+            </label>
+            <input
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="ticker"
+              name="ticker"
+              type="text"
+              required
+              placeholder="e.g., AAPL"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label
+                class="block text-gray-700 text-sm font-bold mb-2"
+                for="start_date"
+              >
+                Start Date
+              </label>
+              <input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="start_date"
+                name="start_date"
+                type="date"
+                required
+              />
+            </div>
+
+            <div>
+              <label
+                class="block text-gray-700 text-sm font-bold mb-2"
+                for="end_date"
+              >
+                End Date
+              </label>
+              <input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="end_date"
+                name="end_date"
+                type="date"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label
+              class="block text-gray-700 text-sm font-bold mb-2"
+              for="volume_threshold"
+            >
+              Volume Breakout Threshold (%)
+            </label>
+            <input
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="volume_threshold"
+              name="volume_threshold"
+              type="number"
+              required
+              placeholder="200"
+              min="0"
+            />
+          </div>
+
+          <div class="mb-4">
+            <label
+              class="block text-gray-700 text-sm font-bold mb-2"
+              for="price_threshold"
+            >
+              Daily Change Threshold (%)
+            </label>
+            <input
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="price_threshold"
+              name="price_threshold"
+              type="number"
+              required
+              placeholder="2"
+              step="0.1"
+              min="0"
+            />
+          </div>
+
+          <div class="mb-6">
+            <label
+              class="block text-gray-700 text-sm font-bold mb-2"
+              for="hold_period"
+            >
+              Holding Period (Days)
+            </label>
+            <input
+              class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="hold_period"
+              name="hold_period"
+              type="number"
+              required
+              placeholder="10"
+              min="1"
+            />
+          </div>
+
+          <div class="flex items-center justify-center">
+            <button
+              type="submit"
+              class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              Generate Report
+            </button>
+          </div>
+        </form>
+
+        <!-- Loading Spinner -->
+        <div id="loading" class="hidden flex justify-center items-center my-8">
+          <div
+            class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"
+          ></div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="hidden">
+          <h2 class="text-2xl font-bold mb-4">Analysis Results</h2>
+
+          <!-- Summary Statistics -->
+          <div class="mb-6">
+            <h3 class="text-xl font-semibold mb-3">Summary Statistics</h3>
+            <div
+              class="grid grid-cols-2 md:grid-cols-3 gap-4"
+              id="summaryStats"
+            >
+              <!-- Summary stats will be inserted here -->
+            </div>
+          </div>
+
+          <!-- Breakout Table -->
+          <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+              <thead>
+                <tr>
+                  <th class="px-4 py-2 border">Entry Date</th>
+                  <th class="px-4 py-2 border">Entry Price</th>
+                  <th class="px-4 py-2 border">Volume Ratio</th>
+                  <th class="px-4 py-2 border">Daily Return</th>
+                  <th class="px-4 py-2 border">Exit Date</th>
+                  <th class="px-4 py-2 border">Exit Price</th>
+                  <th class="px-4 py-2 border">Hold Return</th>
+                </tr>
+              </thead>
+              <tbody id="resultsTable">
+                <!-- Results will be inserted here -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Download Button -->
+          <div class="flex justify-center mt-6">
+            <button
+              id="downloadBtn"
+              class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              Download Excel Report
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("analysisForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          // Show loading spinner
+          document.getElementById("loading").classList.remove("hidden");
+          document.getElementById("results").classList.add("hidden");
+
+          // Collect form data
+          const formData = {
+            ticker: document.getElementById("ticker").value,
+            start_date: document.getElementById("start_date").value,
+            end_date: document.getElementById("end_date").value,
+            volume_threshold: document.getElementById("volume_threshold").value,
+            price_threshold: document.getElementById("price_threshold").value,
+            hold_period: document.getElementById("hold_period").value,
+          };
+
+          try {
+            // Send analysis request
+            const response = await fetch("/analyze", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+
+            // Update summary statistics
+            const summaryStats = document.getElementById("summaryStats");
+            summaryStats.innerHTML = Object.entries(data.summary)
+              .map(
+                ([key, value]) => `
+                        <div class="bg-gray-100 p-4 rounded">
+                            <div class="text-sm text-gray-600">${key.replace(
+                              /_/g,
+                              " "
+                            )}</div>
+                            <div class="text-lg font-semibold">${value}</div>
+                        </div>
+                    `
+              )
+              .join("");
+
+            // Update results table
+            const resultsTable = document.getElementById("resultsTable");
+            resultsTable.innerHTML = data.results
+              .map(
+                (row) => `
+                        <tr>
+                            <td class="px-4 py-2 border">${row.Entry_Date}</td>
+                            <td class="px-4 py-2 border">${row.Entry_Price}</td>
+                            <td class="px-4 py-2 border">${row.Volume_Ratio}</td>
+                            <td class="px-4 py-2 border">${row.Daily_Return}</td>
+                            <td class="px-4 py-2 border">${row.Exit_Date}</td>
+                            <td class="px-4 py-2 border">${row.Exit_Price}</td>
+                            <td class="px-4 py-2 border">${row.Hold_Return}</td>
+                        </tr>
+                    `
+              )
+              .join("");
+
+            // Store data for download
+            window.analysisData = {
+              results: data.results,
+              summary: data.summary,
+              ticker: formData.ticker,
+            };
+
+            // Show results
+            document.getElementById("results").classList.remove("hidden");
+          } catch (error) {
+            console.error("Error:", error);
+            alert(
+              "An error occurred while analyzing the data. Please try again."
+            );
+          } finally {
+            // Hide loading spinner
+            document.getElementById("loading").classList.add("hidden");
+          }
+        });
+
+      document
+        .getElementById("downloadBtn")
+        .addEventListener("click", async () => {
+          try {
+            const response = await fetch("/download", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(window.analysisData),
+            });
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `${window.analysisData.ticker}_breakout_analysis.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+          } catch (error) {
+            console.error("Error:", error);
+            alert(
+              "An error occurred while downloading the report. Please try again."
+            );
+          }
+        });
+    </script>
+  </body>
+</html>
