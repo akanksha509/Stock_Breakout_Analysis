@@ -27,7 +27,7 @@ Project Link [https://stock-breakout-analysis.onrender.com](https://stock-breako
 1. Clone the repository (or create a new directory):
 
 ```bash
-git clone https://github.com/Aryaman19/Stock-Breakout-Analysis.git
+git clone https://github.com/akanksha509/Stock-Breakout-Analysis.git
 cd Stock-Breakout-Analysis
 ```
 
